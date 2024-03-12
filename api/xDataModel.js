@@ -7,6 +7,14 @@ const findAll = callback => {
     });
 };
 
+const findById = (id, callback) => {
+    db.query('SELECT * FROM xTable WHERE uuid = ?', [id], (err, results) => {
+        if (err) return callback(err);
+        // results is an array of rows. You should return the first one if it exists.
+        callback(null, results[0]);
+    });
+};
+
 const create = (xData, callback) => {
     db.query('INSERT INTO xTable SET ?', xData, (err, result) => {
         if (err) return callback(err);
@@ -28,4 +36,4 @@ const deleteById = (id, callback) => {
     });
 };
 
-module.exports = { findAll, create, update, deleteById };
+module.exports = { findAll, findById, create, update, deleteById };

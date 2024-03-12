@@ -11,6 +11,16 @@ router.get('/', (req, res) => {
 
 
 
+router.get('/:id', (req, res) => {
+    const { id } = req.params;
+    findById(id, (err, item) => {
+        if (err) return res.status(500).send(err);
+        if (!item) return res.status(404).send('Item not found');
+        res.status(200).json(item);
+    });
+});
+
+
 
 
 router.post('/', (req, res) => {
