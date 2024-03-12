@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { findAll, create, update, deleteById } = require('./xDataModel');
+const { findAll, findById, create, update, deleteById } = require('./xDataModel');
 
 router.get('/', (req, res) => {
     findAll((err, items) => {
