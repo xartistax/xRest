@@ -1,7 +1,7 @@
 const db = require('./database');
 
 const findAll = callback => {
-    db.query('SELECT * FROM xTable', (err, results) => {
+    db.query('SELECT * FROM xTable LIMIT 99', (err, results) => {
         if (err) return callback(err);
         callback(null, results);
     });
