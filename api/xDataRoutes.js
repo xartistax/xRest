@@ -1,14 +1,43 @@
+const db = require('./database'); // Adjust the path as necessary to point to your database.js file
+
 const express = require('express');
 const router = express.Router();
 const { findAll, findById, create, update, deleteById } = require('./xDataModel');
+const getTotalCount = callback => {
+    db.query('SELECT COUNT(*) AS totalCount FROM xTable', (err, results) => {
+        if (err) return callback(err);
+        callback(null, results[0].totalCount);
+    });
+};
+
+
+
+
+
+
+
 
 router.get('/', (req, res) => {
-    findAll((err, items) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    getTotalCount((err, totalCount) => {
         if (err) return res.status(500).send(err);
-        res.status(200).json(items);
+
+        findAll(page, limit, (err, items) => {
+            if (err) return res.status(500).send(err);
+            res.status(200).json({
+                data: items,
+                meta: {
+                    totalItems: totalCount,
+                    currentPage: page,
+                    totalPages: Math.ceil(totalCount / limit),
+                    itemsPerPage: limit
+                }
+            });
+        });
     });
 });
-
 
 
 router.get('/:id', (req, res) => {

@@ -1,7 +1,8 @@
 const db = require('./database');
 
-const findAll = callback => {
-    db.query('SELECT * FROM xTable LIMIT 99', (err, results) => {
+const findAll = (page = 1, limit = 10, callback) => {
+    const offset = (page - 1) * limit;
+    db.query('SELECT * FROM xTable LIMIT ?, ?', [offset, parseInt(limit)], (err, results) => {
         if (err) return callback(err);
         callback(null, results);
     });
@@ -35,5 +36,9 @@ const deleteById = (id, callback) => {
         callback(null, result);
     });
 };
+
+
+
+
 
 module.exports = { findAll, findById, create, update, deleteById };
