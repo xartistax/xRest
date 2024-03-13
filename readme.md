@@ -24,3 +24,38 @@ A step-by-step series of examples that tell you how to get a development environ
    git clone https://yourprojectrepository.git
    cd yourprojectdirectory
    npm install
+```
+
+## API Endpoints
+
+Describe each available endpoint, including request methods, path parameters, query parameters, request body schema (for POST and PUT requests), success response, and error response examples.
+
+### Get All Items
+
+- **Method**: GET
+- **Path**: `/xdata`
+- **Query Parameters**:
+  - `page`: Page number (optional)
+  - `limit`: Number of items per page (optional)
+- **Success Response**:
+  - **Code**: 200 OK
+  - **Content**: 
+    ```json
+    [
+      {"id": 1, "uuid": "some-uuid-here", "name": "Item Name", ...},
+      ...
+    ]
+    ```
+
+### Get Item by ID
+
+- **Method**: GET
+- **Path**: `/xdata/:id`
+- **URL Parameters**:
+  - `id`: The unique identifier or UUID of the item
+- **Success Response**:
+  - **Code**: 200 OK
+  - **Content**: 
+    ```json
+    {"id": 1, "uuid": "some-uuid-here", "name": "Item Name", ...}
+    ```
