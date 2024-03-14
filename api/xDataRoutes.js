@@ -1,5 +1,5 @@
 const db = require('./database'); // Adjust the path as necessary to point to your database.js file
-
+const cors = require('cors');
 const express = require('express');
 const router = express.Router();
 const { findAll, findById, create, update, deleteById } = require('./xDataModel');
@@ -14,7 +14,7 @@ const getTotalCount = callback => {
 
 
 
-
+router.use(cors());
 
 
 router.get('/', (req, res) => {
