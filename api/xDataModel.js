@@ -38,7 +38,85 @@ const deleteById = (id, callback) => {
 };
 
 
+const groupByCategory = (callback) => {
+    db.query('SELECT category, COUNT(*) AS categoryCount FROM xTable WHERE category != "NaN" GROUP BY category', (err, results) => {
+        if (err) return callback(err);
+
+        // Create an object to hold the count of each individual category
+        let categoryCounts = {};
+
+        // Process each result
+        results.forEach(result => {
+            // Split the category by comma and trim whitespace
+            const categories = result.category.split(',').map(cat => cat.trim());
+
+            // Increment the count for each category found
+            categories.forEach(cat => {
+                if (categoryCounts[cat]) {
+                    categoryCounts[cat] += result.categoryCount;
+                } else {
+                    categoryCounts[cat] = result.categoryCount;
+                }
+            });
+        });
+
+        // Convert the aggregated counts back into the array format expected by the callback
+        const aggregatedResults = Object.entries(categoryCounts).map(([category, count]) => ({
+            category,
+            categoryCount: count
+        }));
+
+        const validCategories = aggregatedResults.filter(cat => cat.name !== 'NaN');
+        callback(null, validCategories);
+    });
+};
+
+
+const groupByAngebot = (callback) => {
+    db.query('SELECT services, COUNT(*) AS categoryCount FROM xTable GROUP BY services', (err, results) => {
+        if (err) return callback(err);
+
+        let serviceCounts = {};
+
+        results.forEach(result => {
+            // Splitting the 'services' field by commas and trim each service
+            const services = result.services.split(',').map(service => service.trim());
+
+            services.forEach(service => {
+                // If the service already exists in our object, add the count, otherwise, initialize it
+                if (serviceCounts[service]) {
+                    serviceCounts[service] += result.categoryCount;
+                } else {
+                    serviceCounts[service] = result.categoryCount;
+                }
+            });
+        });
+
+        // Convert the serviceCounts object into an array of objects with 'service' and 'count'
+        const aggregatedResults = Object.entries(serviceCounts).map(([service, count]) => ({
+            service,
+            count
+        }));
+
+        // Now we return the aggregated results instead of the raw query results 
+        callback(null, aggregatedResults);
+    });
+};
 
 
 
-module.exports = { findAll, findById, create, update, deleteById };
+const groupByLocation = (callback) => {
+    // Corrected SQL query to fetch locations and count of records per location
+    db.query('SELECT location, COUNT(*) AS locationCount FROM xTable  GROUP BY location', (err, results) => {
+        if (err) return callback(err);
+
+        // Since the query now correctly counts records per location, we can directly use the results
+        callback(null, results);
+
+    });
+};
+
+
+
+
+module.exports = { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation };

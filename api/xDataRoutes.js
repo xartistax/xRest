@@ -2,7 +2,7 @@ const db = require('./database'); // Adjust the path as necessary to point to yo
 const cors = require('cors');
 const express = require('express');
 const router = express.Router();
-const { findAll, findById, create, update, deleteById } = require('./xDataModel');
+const { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation } = require('./xDataModel');
 const getTotalCount = callback => {
     db.query('SELECT COUNT(*) AS totalCount FROM xTable', (err, results) => {
         if (err) return callback(err);
@@ -15,6 +15,7 @@ const getTotalCount = callback => {
 
 
 router.use(cors());
+
 
 
 router.get('/', (req, res) => {
@@ -39,6 +40,41 @@ router.get('/', (req, res) => {
     });
 });
 
+router.post('/', (req, res) => {
+    create(req.body, (err, result) => {
+        if (err) return res.status(500).send(err);
+        res.status(201).send(`Item added with ID: ${result.insertId}`);
+    });
+});
+
+router.get('/groupbycategory', (req, res) => {
+    // Assuming you don't need an ID to group by category.
+    groupByCategory((err, items) => {
+        if (err) return res.status(500).send(err);
+        if (!items.length) return res.status(404).send('Items not found');
+        res.status(200).json(items);
+    });
+});
+
+router.get('/groupbyangebot', (req, res) => {
+    // Assuming you don't need an ID to group by category.
+    groupByAngebot((err, items) => {
+        if (err) return res.status(500).send(err);
+        if (!items.length) return res.status(404).send('Items not found');
+        res.status(200).json(items);
+    });
+});
+
+
+router.get('/groupbylocation', (req, res) => {
+    // Assuming you don't need an ID to group by category.
+    groupByLocation((err, items) => {
+        if (err) return res.status(500).send(err);
+        if (!items.length) return res.status(404).send('Items not found');
+        res.status(200).json(items);
+    });
+});
+
 
 router.get('/:id', (req, res) => {
     const { id } = req.params;
@@ -50,14 +86,6 @@ router.get('/:id', (req, res) => {
 });
 
 
-
-
-router.post('/', (req, res) => {
-    create(req.body, (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send(`Item added with ID: ${result.insertId}`);
-    });
-});
 
 router.put('/:id', (req, res) => {
     update(req.params.id, req.body, (err, result) => {
