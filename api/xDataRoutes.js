@@ -2,7 +2,7 @@ const db = require('./database'); // Adjust the path as necessary to point to yo
 const cors = require('cors');
 const express = require('express');
 const router = express.Router();
-const { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation } = require('./xDataModel');
+const { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategoryAndServices } = require('./xDataModel');
 const getTotalCount = callback => {
     db.query('SELECT COUNT(*) AS totalCount FROM xTable', (err, results) => {
         if (err) return callback(err);
@@ -13,7 +13,7 @@ const getTotalCount = callback => {
 
 
 
-
+ 
 router.use(cors());
 
 
@@ -98,6 +98,24 @@ router.delete('/:id', (req, res) => {
     deleteById(req.params.id, (err) => {
         if (err) return res.status(500).send(err);
         res.status(204).send();
+    });
+});
+
+
+
+
+router.get('/filter/:category', (req, res) => {
+    
+    const { category } = req.params;
+    let { services, location } = req.query;
+    
+    // Convert services string to array by splitting it using comma as delimiter
+    services = services ? services.split(',') : [];
+
+    filterByCategoryAndServices(category, services, location, (err, items) => {
+        if (err) return res.status(500).send(err);
+        if (!items || items.length === 0) return res.status(404).send('Items not found');
+        res.status(200).json(items);
     });
 });
 

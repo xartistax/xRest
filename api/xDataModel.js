@@ -117,6 +117,52 @@ const groupByLocation = (callback) => {
 };
 
 
+const filterByCategoryAndServices = (category, services, location, callback) => {
+    // Base query for both items and count
+    let baseQuery = `FROM xTable WHERE category LIKE '%${category}%'`;
+
+    if (services.length > 0) {
+        const serviceConditions = services.map(service => `services LIKE '%${service}%'`).join(' AND ');
+        baseQuery += ` AND (${serviceConditions})`;
+    }
+
+    if (location) {
+        baseQuery += ` AND Location LIKE '%${location}%'`;
+    }
+
+    // Query to get the items
+    const itemsQuery = `SELECT * ${baseQuery} ORDER BY Likes DESC;`;
+
+    // Query to get the count of items
+    const countQuery = `SELECT COUNT(*) AS itemCount ${baseQuery};`;
+
+    // First, get the count of filtered items
+    db.query(countQuery, (err, countResult) => {
+        if (err) {
+            console.error(err);
+            return callback(err);
+        }
+
+        // Then, fetch the items if count > 0
+        if (countResult[0].itemCount > 0) {
+            db.query(itemsQuery, (err, items) => {
+                if (err) {
+                    console.error(err);
+                    return callback(err);
+                }
+
+                // Return both items and their count
+                callback(null, {items: items, count: countResult[0].itemCount});
+            });
+        } else {
+            // No items found, return count as 0
+            callback(null, {items: [], count: 0});
+        }
+    });
+};
 
 
-module.exports = { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation };
+
+
+
+module.exports = { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategoryAndServices };
