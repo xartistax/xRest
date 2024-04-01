@@ -2,7 +2,7 @@ const db = require('./database'); // Adjust the path as necessary to point to yo
 const cors = require('cors');
 const express = require('express');
 const router = express.Router();
-const { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategoryAndServices } = require('./xDataModel');
+const { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategory, filterByService } = require('./xDataModel');
 const getTotalCount = callback => {
     db.query('SELECT COUNT(*) AS totalCount FROM xTable', (err, results) => {
         if (err) return callback(err);
@@ -20,7 +20,7 @@ router.use(cors());
 
 router.get('/', (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 20;
 
     getTotalCount((err, totalCount) => {
         if (err) return res.status(500).send(err);
@@ -104,19 +104,41 @@ router.delete('/:id', (req, res) => {
 
 
 
-router.get('/filter/:category', (req, res) => {
+router.get('/filter/category/:category', (req, res) => {
     
     const { category } = req.params;
-    let { services, location } = req.query;
+    let {  location, limit, page } = req.query;
     
     // Convert services string to array by splitting it using comma as delimiter
-    services = services ? services.split(',') : [];
+    limit = parseInt(limit) || 20; // Provide default values for limit and page
+    page = parseInt(page) || 1;
 
-    filterByCategoryAndServices(category, services, location, (err, items) => {
+    filterByCategory(category, location, limit, page, (err, items) => {
         if (err) return res.status(500).send(err);
         if (!items || items.length === 0) return res.status(404).send('Items not found');
         res.status(200).json(items);
     });
 });
+
+
+
+router.get('/filter/service/:service', (req, res) => {
+    
+    const { service } = req.params;
+    let {  location, limit, page } = req.query;
+    
+    // Convert services string to array by splitting it using comma as delimiter
+    limit = parseInt(limit) || 20; // Provide default values for limit and page
+    page = parseInt(page) || 1;
+
+    filterByService(service, location, limit, page, (err, items) => {
+        if (err) return res.status(500).send(err);
+        if (!items || items.length === 0) return res.status(404).send('Items not found');
+        res.status(200).json(items);
+    });
+});
+
+
+
 
 module.exports = router;

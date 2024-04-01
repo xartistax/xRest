@@ -9,7 +9,7 @@ const findAll = (page = 1, limit = 10, callback) => {
 };
 
 const findById = (id, callback) => {
-    db.query('SELECT * FROM xTable WHERE uuid = ?', [id], (err, results) => {
+    db.query('SELECT * FROM xTable WHERE id = ?', [id], (err, results) => {
         if (err) return callback(err);
         // results is an array of rows. You should return the first one if it exists.
         callback(null, results[0]);
@@ -117,47 +117,71 @@ const groupByLocation = (callback) => {
 };
 
 
-const filterByCategoryAndServices = (category, services, location, callback) => {
-    // Base query for both items and count
-    let baseQuery = `FROM xTable WHERE category LIKE '%${category}%'`;
-
-    if (services.length > 0) {
-        const serviceConditions = services.map(service => `services LIKE '%${service}%'`).join(' AND ');
-        baseQuery += ` AND (${serviceConditions})`;
-    }
+const filterByCategory = (category, location, limit = 20, page = 1, callback) => {
+    let baseQuery = `FROM xTable WHERE category LIKE ?`;
+    const queryParams = [`%${decodeURIComponent(category)}%`]; // Ensure category is decoded
 
     if (location) {
-        baseQuery += ` AND Location LIKE '%${location}%'`;
+        baseQuery += ` AND Location LIKE ?`;
+        queryParams.push(`%${decodeURIComponent(location)}%`);
     }
 
-    // Query to get the items
-    const itemsQuery = `SELECT * ${baseQuery} ORDER BY Likes DESC;`;
+    const offset = (page - 1) * limit;
+    const itemsQuery = `SELECT * ${baseQuery} ORDER BY crawl_date DESC LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
 
-    // Query to get the count of items
-    const countQuery = `SELECT COUNT(*) AS itemCount ${baseQuery};`;
+    console.log(`Executing query: ${itemsQuery} with params: ${queryParams.join(', ')}`); // Debugging
 
-    // First, get the count of filtered items
-    db.query(countQuery, (err, countResult) => {
+    db.query(itemsQuery, queryParams, (err, items) => {
         if (err) {
             console.error(err);
             return callback(err);
         }
 
-        // Then, fetch the items if count > 0
-        if (countResult[0].itemCount > 0) {
-            db.query(itemsQuery, (err, items) => {
-                if (err) {
-                    console.error(err);
-                    return callback(err);
-                }
+        const countQuery = `SELECT COUNT(*) AS total ${baseQuery}`;
+        // Use queryParams without the last two elements (LIMIT and OFFSET)
+        db.query(countQuery, queryParams.slice(0, -2), (err, result) => {
+            if (err) {
+                console.error(err);
+                return callback(err);
+            }
+            callback(null, { items, total: result[0].total });
+        });
+    });
+};
 
-                // Return both items and their count
-                callback(null, {items: items, count: countResult[0].itemCount});
-            });
-        } else {
-            // No items found, return count as 0
-            callback(null, {items: [], count: 0});
+
+
+const filterByService = (service, location, limit = 20, page = 1, callback) => {
+    let baseQuery = `FROM xTable WHERE services LIKE ?`;
+    const queryParams = [`%${decodeURIComponent(service)}%`]; // Ensure category is decoded
+
+    if (location) {
+        baseQuery += ` AND Location LIKE ?`;
+        queryParams.push(`%${decodeURIComponent(location)}%`);
+    }
+
+    const offset = (page - 1) * limit;
+    const itemsQuery = `SELECT * ${baseQuery} ORDER BY crawl_date DESC LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
+
+    console.log(`Executing query: ${itemsQuery} with params: ${queryParams.join(', ')}`); // Debugging
+
+    db.query(itemsQuery, queryParams, (err, items) => {
+        if (err) {
+            console.error(err);
+            return callback(err);
         }
+
+        const countQuery = `SELECT COUNT(*) AS total ${baseQuery}`;
+        // Use queryParams without the last two elements (LIMIT and OFFSET)
+        db.query(countQuery, queryParams.slice(0, -2), (err, result) => {
+            if (err) {
+                console.error(err);
+                return callback(err);
+            }
+            callback(null, { items, total: result[0].total });
+        });
     });
 };
 
@@ -165,4 +189,8 @@ const filterByCategoryAndServices = (category, services, location, callback) => 
 
 
 
-module.exports = { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategoryAndServices };
+
+
+
+
+module.exports = { findAll, findById, create, update, deleteById, groupByCategory, groupByAngebot, groupByLocation, filterByCategory, filterByService };
